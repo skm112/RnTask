@@ -4,6 +4,11 @@ import { TextInput, Surface, Button, Title, HelperText, useTheme } from 'react-n
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as yup from 'yup';
 import { isSupported } from '../helpers/biometric';
+import { useNavigation, StackActions } from '@react-navigation/native';
+import { useDispatch } from 'react-redux';
+import { setAuth } from '../redux/slices/authSlice';
+
+
 
 
 let schema = yup.object().shape({
@@ -15,6 +20,8 @@ let schema = yup.object().shape({
 
 
 const LoginScreen = () => {
+    const navigation = useNavigation();
+    const dispatch = useDispatch()
     const { colors } = useTheme()
     const [ email, setEmail ] = useState('')
     const [ isSubmitting, setIsSubmitting ] = useState(false);
@@ -67,10 +74,12 @@ const LoginScreen = () => {
             .then(async (validatedData) => {
                 if (validatedData) {
                     console.log({ validatedData })
-                    const signature = isSupported()
+                    const signature = await isSupported()
                     console.log({ signature })
-                    await AsyncStorage.setItem('auth', JSON.stringify({ ...validatedData, signature }))
-
+                    const data = { ...validatedData, signature }
+                    dispatch(setAuth(data))
+                    // await AsyncStorage.setItem('auth', JSON.stringify({ ...validatedData, signature }))
+                    // navigation?.dispatch(StackActions.replace("HomeScreen"))
                 }
                 setIsSubmitting(false);
             })
